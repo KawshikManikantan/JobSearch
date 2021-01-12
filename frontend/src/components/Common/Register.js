@@ -9,11 +9,12 @@ export default class Register extends Component {
         this.state = {
             name: '',
             email: '',
-            date:null
+            password:''
         }
 
         this.onChangeUsername = this.onChangeUsername.bind(this);
         this.onChangeEmail = this.onChangeEmail.bind(this);
+        this.onChangePassword = this.onChangePassword.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
     
@@ -25,14 +26,19 @@ export default class Register extends Component {
         this.setState({ email: event.target.value });
     }
 
+    onChangePassword(event){
+        this.setState({password:event.target.value})
+    }
+
     onSubmit(e) {
         e.preventDefault();
 
         const newUser = {
             name: this.state.name,
             email: this.state.email,
-            date: Date.now()
+            password:this.state.password
         }
+
         axios.post('http://localhost:4000/user/register', newUser)
              .then(res => {alert("Created\t" + res.data.name);console.log(res.data)})
              ;
@@ -40,7 +46,7 @@ export default class Register extends Component {
         this.setState({
             name: '',
             email: '',
-            date:null
+            password: ''
         });
     }
 
@@ -63,6 +69,14 @@ export default class Register extends Component {
                                value={this.state.email}
                                onChange={this.onChangeEmail}
                                />  
+                    </div>
+                    <div className="form-group">
+                        <label>Password (Minimum of 8 letters): </label>
+                        <input type="password"
+                               className="form-control"
+                               value={this.state.password}
+                               onChange={this.onChangePassword}
+                        />
                     </div>
                     <div className="form-group">
                         <input type="submit" value="Register" className="btn btn-primary"/>
