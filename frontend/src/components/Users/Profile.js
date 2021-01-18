@@ -53,7 +53,7 @@ class Profile extends Component {
         var array = this.state.users;
         var flag = this.state.sortName;
         array.sort(function(a, b) {
-            if(a.date != undefined && b.date != undefined){
+            if(a.date !== undefined && b.date !== undefined){
                 return (1 - flag*2) * (new Date(a.date) - new Date(b.date));
             }
             else{

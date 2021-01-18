@@ -6,18 +6,34 @@ import UsersList from './components/Users/UsersList'
 import Home from './components/Common/Home'
 import Register from './components/Common/Register'
 import Navbar from './components/templates/Navbar'
-import Profile from './components/Users/Profile'
+import Profile from './components/Applicant/Profile'
+import RecProfile from  './components/Recruiter/Profile'
+import Login from './components/Common/Login'
+import Job_Details from "./components/Recruiter/Job_Details";
 
 function App() {
+  const navelements=[
+    {
+      link:"/register",
+      title:"Register"
+    },
+    {
+      link:"/login",
+      title:"Login"
+    }
+  ]
   return (
     <Router>
       <div className="container">
-        <Navbar/>
+        <Navbar elements={navelements}/>
         <br/>
         <Route path="/" exact component={Home}/>
         <Route path="/users" exact component={UsersList}/>
         <Route path="/register" component={Register}/>
+        <Route path="/login" component={Login}/>
         <Route path="/profile" component={Profile}/>
+        <Route path="/recruiter/profile" component={RecProfile}/>
+        <Route path="/recruiter/job" component={Job_Details}/>
       </div>
     </Router>
   );

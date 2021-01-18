@@ -16,7 +16,7 @@ const Recruiter = new Schema({
     },
 
     contact:{
-        type:Number,
+        type:String,
         required:true
     },
 
@@ -27,7 +27,7 @@ const Recruiter = new Schema({
 
     rating:{
         type:Number,
-        required:true
+        default:0
     }
 
 });

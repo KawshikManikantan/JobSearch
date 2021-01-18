@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // Create Schema
-const Job_Details = new Schema({
+const Job_Application = new Schema({
+
     job:{
         type:Schema.Types.ObjectId,
         ref:"Job"
@@ -24,3 +25,5 @@ const Job_Details = new Schema({
     }
 
 })
+
+module.exports = Application = mongoose.model("Job_Application", Job_Application);

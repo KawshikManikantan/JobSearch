@@ -9,21 +9,18 @@ export default class NavBar extends Component {
     }
 
     render() {
+        const listItems = this.props.elements.map((element) =>
+            <li className="navbar-item">
+                <Link to={element.link} className="nav-link">{element.title}</Link>
+            </li>
+        );
         return (
             <div>                
                 <nav className="navbar navbar-expand-lg navbar-light bg-light">
-                    <Link to="/" className="navbar-brand">Demo</Link>
+                    <Link to="/" className="navbar-brand">Home</Link>
                     <div className="collapse navbar-collapse">
                         <ul className="navbar-nav mr-auto">
-                            <li className="navbar-item">
-                                <Link to="/users" className="nav-link">Users</Link>
-                            </li>
-                            <li className="navbar-item">
-                                <Link to="/register" className="nav-link">Register</Link>
-                            </li>
-                            <li className="navbar-item">
-                                <Link to="/profile" className="nav-link">My Profile</Link>
-                            </li>                            
+                            {listItems}
                         </ul>
                     </div>
                 </nav>

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-
+const ApplicationSchema=require('./Job_Application')
 // Create Schema
 const Job_Details = new Schema({
 
@@ -20,56 +20,19 @@ const Job_Details = new Schema({
     },
 
     date_posting: {
-        date:{
-            type: Number,
-            required: true,
-        },
-
-        day:{
-            type: String,
-            required:true
-        },
-
-        year:{
-            type: Number,
-            required: true,
-        }
+        type: Date,
+        default:Date.now()
     },
 
     deadline: {
-        date:{
-            type: Number,
-            required: true,
-        },
-
-        day:{
-            type: String,
-            required:true
-        },
-
-        year:{
-            type: Number,
-            required: true,
-        },
-
-        hour:{
-            type: Number,
-            required: true,
-        },
-
-        minute:{
-            type: Number,
-            required: true,
-        }
-
+        type: Date,
+        required:true
     },
 
     skills_req:[
         {
-            language:{
-                type:String,
-                required:true
-            }
+            type:String,
+            required:true
         }
     ],
 
@@ -90,16 +53,26 @@ const Job_Details = new Schema({
 
     rating:{
         type:Number,
-        required:true
+        default:0
     },
 
     recruiter:{
         type:Schema.Types.ObjectId,
         ref:"Job_Recruiter"
     }
-
-
-
 });
+
+Job_Details.pre('deleteOne',async function(next) {
+    try {
+        console.log("Called before deleteone")
+        await ApplicationSchema.deleteMany({job: this._id})
+        next()
+    }catch (err) {
+        console.log(err)
+        // res.status(500).send('Issue with the Server.Try Again later')
+        //Error Handling doubtful
+
+    }
+})
 
 module.exports = Job = mongoose.model("Job", Job_Details);

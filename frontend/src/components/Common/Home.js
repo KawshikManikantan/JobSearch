@@ -2,23 +2,10 @@ import React, {Component} from 'react';
 import axios from 'axios';
 
 export default class Home extends Component {
-    
-    constructor(props) {
-        super(props);
-        this.state = {
-            name:'',
-            email:''
-        }
-    }
-
-    componentDidMount() {
-
-    }
-
     render() {
         return (
             <div>
-                Happy Coding!
+                <h1> Welcome to the Job Search Platform</h1>
            </div>
         )
     }

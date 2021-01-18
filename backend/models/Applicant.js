@@ -17,18 +17,19 @@ const Applicant = new Schema({
 
     education: [
             {
-                name: {
+                institute: {
                         type:String,
                         required: true
                       },
 
-                startyear: {
+                start: {
                     type:String,
                     required:true
                 },
 
-                endyear: {
+                end: {
                     type:String,
+                    required:false
                 }
 
             }
@@ -36,16 +37,15 @@ const Applicant = new Schema({
 
     skills:[
         {
-            language:{
-                type:String,
-                required:true
-            }
+            type:String,
+            required:true
         }
     ],
 
     rating:{
         type:Number,
-        required:true
+        required:false,
+        default:0
     }
 
 });

@@ -6,3 +6,14 @@
         // if (!errors.isEmpty()) {
         //     return res.status(400).json({errors: errors.array()})
         // }
+
+
+        // const message={
+                   //     userdet:{
+                   //         id:newUser.id,
+                   //         type:newUser.type
+                   //     }
+                   // }
+
+                   // jwt.sign(message,configuration.JWT_SECRET,{expiresIn: configuration.JWT_EXPIRATION })
+

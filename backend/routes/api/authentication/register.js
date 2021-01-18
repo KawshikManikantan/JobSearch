@@ -5,7 +5,8 @@ const encryptor = require('bcryptjs')
 const jwt=require('jsonwebtoken')
 // Load User model
 const Register = require("../../../models/Login_Details");
-const configuration=require("../../../config")
+
+const configuration=require("../../../config_backend")
 
 // POST request
 // Add a user to db
@@ -44,17 +45,55 @@ router.post("/register",
             });
 
             await newUser.save()
+            const req_body={
+                'id':newUser._id,
+                'userid':newUser.email,
+                'type':newUser.type,
+                'prof_built':newUser.profile_built
+            }
+            console.log(req_body)
+            res.status(200).json(req_body)
 
-            const message={
-                userdet:{
-                    id:newUser.id,
-                    type:newUser.type
-                }
+        } catch (err) {
+            console.log(err)
+            res.status(500).send('Issue with the Server.Try Again later')
+        }
+
+    });
+
+router.post("/login",
+    async (req, res) => {
+
+        //Debug
+        console.log("Body")
+        console.log(req.body)
+
+        //If no errors in the given input
+        try {
+
+            //Check if email is existant?
+            const email=req.body.email
+            const existingUser = await Register.findOne({email})
+            if(!existingUser)
+            {
+                return res.status(401).json({ message:"User is not authenticated"})
             }
 
-            jwt.sign(message,configuration.JWT_SECRET,{expiresIn: configuration.JWT_EXPIRATION })
-
-            res.status(200).json()
+            let compare=await encryptor.compare(req.body.password,existingUser.password)
+            if(!compare)
+            {
+                return res.status(401).json({ message:"User is not authenticated"})
+            }
+            console.log(existingUser.email)
+            // console.log(res.session)
+            const req_body={
+                'id':existingUser._id,
+                'userid':existingUser.email,
+                'type':existingUser.type,
+                'prof_built':existingUser.profile_built
+            }
+            console.log(req_body)
+            res.status(200).json(req_body)
 
         } catch (err) {
             console.log(err)

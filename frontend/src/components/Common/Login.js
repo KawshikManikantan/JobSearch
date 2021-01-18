@@ -4,55 +4,60 @@ import {useForm} from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import Cookies from 'js-cookie'
-
 const schema = yup.object().shape({
     email: yup.string().email().required(),
     password: yup.string().min(8).required(),
-    type:yup.string().required()
+    // type:yup.string().required()
 });
 
-const Registration = (props) => {
+const Login = (props) => {
     const { register, handleSubmit, errors } = useForm({
         resolver: yupResolver(schema)
     });
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [type, setType] = useState('');
+    // const [type, setType] = useState('');
 
 
     const onSubmit = async event => {
+        const newUser = {
+            email: email,
+            password:password,
+            // type:type
+        }
         try {
-
-            const newUser = {
-                email: email,
-                password: password,
-                type: type
-            }
-            console.log(newUser)
-            setEmail('');
-            setPassword('');
-            setType('');
-
-            const res = await axios.post('http://localhost:4000/auth/register', newUser)
+            const res = await axios.post('http://localhost:4000/auth/login', newUser)
+            console.log(JSON.stringify(res))
             Cookies.set('id', res.data.id)
             Cookies.set('userid', res.data.userid)
             Cookies.set('type', res.data.type)
             Cookies.set('prof_built', res.data.prof_built)
-            alert(Cookies.get())
-            // alert(res.data.type)
+            console.log(typeof(res.data.prof_built))
+
+            if (!res.data.prof_built && res.data.type === 'applicant') {
+                return props.history.push('/profile')
+            }
+
+            if (!res.data.prof_built && res.data.type === 'recruiter') {
+                return props.history.push('/recruiter/profile')
+            }
 
             if (res.data.type === 'applicant') {
-                props.history.push('/profile')
+                return props.history.push('/dashboard')
             }
 
             if (res.data.type === 'recruiter') {
-                props.history.push('/recruiter/profile')
+                return props.history.push('/recruiter/dashboard')
             }
+
+            // console.log(Cookies.get())
+            setEmail('');
+            setPassword('');
+            // setType('Applicant');
+            return false
         }catch(err){
             console.log(err)
-
         }
-        // props.history.push("/");
     }
     return (
         <div>
@@ -65,7 +70,7 @@ const Registration = (props) => {
                            ref={register}
                            className="form-control"
                            value={email}
-                           onChange={event =>setEmail(event.target.value)}/>
+                           onChange={event =>{setEmail(event.target.value)}}/>
                     <p style={{ color:"red" }}>{errors.email?.message}</p>
                 </div>
                 <div className="form-group">
@@ -75,32 +80,16 @@ const Registration = (props) => {
                            placeholder="Password"
                            className="form-control"
                            value={password}
-                           onChange={event => {
-                               setPassword(event.target.value)
-                           }}
+                           onChange={event => setPassword(event.target.value)}
                            ref={register}
                     />
                     <p style={{ color:"red" }}>{errors.password?.message}</p>
                 </div>
                 <div className="form-group">
-                    <input name="type" type="radio" value="applicant" ref={register} onChange={event => setType(event.target.value)}/>
-                    <label>I am looking for Job Opportunities</label>
-                    <br/>
-                    <input name="type" type="radio" value="recruiter" ref={register} onChange={event => setType(event.target.value)}/>
-                    <label>I am looking to Recruit </label>
-                    <p style={{ color:"red" }}>{errors.type?.message}</p>
-                    <br/>
-                    {/*<input type="radio" id="male" name="gender" value="male"/>*/}
-                    {/*<label htmlFor="male">Male</label>*/}
-                    {/*<br/>*/}
-                    {/*<input type="radio" id="female" name="gender" value="female"/>*/}
-                    {/*<label htmlFor="female">Female</label>*/}
-                </div>
-                <div className="form-group">
-                    <input type="submit" value="Register" className="btn btn-primary"/>
+                    <input type="submit" value="Login" className="btn btn-primary"/>
                 </div>
             </form>
         </div>
     )
 }
-export default Registration
+export default Login
