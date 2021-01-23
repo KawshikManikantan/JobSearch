@@ -29,14 +29,13 @@ const Job_Details = new Schema({
         required:true
     },
 
-    skills_req:[
+    skills:[
         {
             type:String,
-            required:true
         }
     ],
 
-    job_type:{
+    type:{
         type:String,
         required:true
     },

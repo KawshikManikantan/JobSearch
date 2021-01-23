@@ -15,7 +15,9 @@ const schema = yup.object().shape({
     name:yup.string().required(),
     institute:yup.string().required(),
     start:yup.number().integer().min(1950).max((new Date()).getFullYear()).required(),
-    end:yup.number().integer().positive().min(1950).max((new Date()).getFullYear()),
+    end:yup.number().integer().positive().min(1950).moreThan(
+        yup.ref('start'),
+        'Should be more than start year'),
     // skills:yup.array().min(1)
 });
 
@@ -29,6 +31,12 @@ const Profile_Applicant = (props) => {
 
     useEffect(() => {
         check_auth(props,'applicant')
+        console.log(Cookies.get('profile_built'))
+        if(typeof props.location.state === "undefined" && Cookies.get('profile_built')==='true')
+        {
+            alert('Page exists only for profile building')
+            return props.history.push('/user/dash')
+        }
     }, []);
 
     const {register, handleSubmit, errors} = useForm({
@@ -48,15 +56,26 @@ const Profile_Applicant = (props) => {
         ],
         'skills': ['C', 'C++']
     }
-    const [details, setDetails] = useState(initial);
-
+    const [details, setDetails] = useState(props.location.state||initial);
+    const [ski, setSki] = useState(typeof props.location.state!=="undefined" ? props.location.state.skills:["C","C++"]);
     const onSubmit = async event => {
         // console.log(details)
         try {
-            const res = await axios.post('http://localhost:4000/profile/applicant', details)
-            console.log(res)
+            if(typeof props.location.state !== "undefined")
+            {
+                const res = await axios.put('http://localhost:4000/profile/applicant', details)
+                console.log(res)
+            }
+            else{
+                const res = await axios.post('http://localhost:4000/profile/applicant', details)
+                console.log("Success Profile")
+                const res1=await axios.post('http://localhost:4000/auth/modify',{email:Cookies.get('userid')})
+                Cookies.set('profile_built',true)
+                console.log(res)
+            }
             setDetails(initial);
-            // props.history.push('/dashboard')
+            console.log("Pro")
+            props.history.push('/user/dash')
 
             return false
         }catch(err)
@@ -92,6 +111,7 @@ const Profile_Applicant = (props) => {
             })
         })
         console.log(details)
+        console.log(ski)
     };
 
     const handleAdd = () => {
@@ -217,7 +237,7 @@ const Profile_Applicant = (props) => {
                         name="skills"
                         options={skills}
                         values={details.skills}
-                        defaultValue={[skills[0],skills[1]]}
+                        defaultValue={ski}
                         onChange={ (event, values) => handleSkillChange(values) }
                         freeSolo
                         renderTags={(value, getTagProps) =>

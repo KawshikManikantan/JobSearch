@@ -4,38 +4,61 @@ const router = express.Router();
 // Load User model
 const Job = require("../../../models/Job_Details");
 const Recruiter=require("../../../models/Recruiter")
+const Application=require('../../../models/Job_Application')
+const Applicant=require('../../../models/Applicant')
 //Load authentication module
 const auth = require("../authentication/auth")
 
 // POST request
 // Add a user to db
 
-router.get("/all",auth,
+router.post("/all",auth,
     async (req, res) => {
 
         console.log("Body")
         console.log(req.body)
 
         try {
-
-            const existingUser = await Job.find({}).populate('recruiter')
-                // .populate(
-                // {
-                //     "path":"recruiter",
-                //     "match":{
-                //         "email":req.session.userid
-                //     }
-                // }
-            // )
-
-            if(existingUser)
+            // const applicant= await Applicant.findOne({email:req.body.userid})
+            // if(!applicant)
+            // {
+            //     return res.status(400).json({ message:"No such User"})
+            // }
+            console.log(req.body.applicantid)
+            const num_applications= await Application.countDocuments({applicant:req.body.applicantid})
+            const isSelected= await Application.countDocuments({applicant:req.body.applicantid,status:"Accepted"})
+            const userstatus={
+                num_applications:num_applications,
+                isSelected:isSelected
+            }
+            const existingJobs = await Job.find({}).lean().populate('recruiter')
+            if(existingJobs.length!==0)
             {
-                return res.status(200).json(existingUser)
+                const tobesent=await Promise.all(existingJobs.map(async (job) => {
+                    const num_applicants= await Application.countDocuments({job: job._id})
+                    const num_selected= await Application.countDocuments({job:job._id,status:"Accepted"})
+                    const status_application=await Application.findOne({job:job._id,applicant:req.body.applicantid}).select('status')
+                    console.log(status_application)
+                    const temp_obj={
+                        num_applicants:num_applicants,
+                        num_selected:num_selected,
+                        app_status:(status_application||'None')
+                    }
+                    return({...job,...temp_obj})
+                }))
+
+                console.log(tobesent)
+                return res.status(200).json({
+                        userstatus:userstatus,
+                        jobs:tobesent
+                    }
+                    )
             }
 
             else
             {
-                return res.status(404).json({message:"No Jobs to display."})
+                const tobesent=[]
+                return res.status(200).json(tobesent)
             }
 
         } catch (err) {
@@ -71,6 +94,12 @@ router.put("/create",
         try {
             //Check if job is existant and then upsert it.
             await Job.findByIdAndUpdate(req.body._id,req.body)
+            const num_selected= await Application.countDocuments({job:req.body._id,status:"Accepted"})
+            const num_required= await Job.findById(req.body._id).lean().select('max_positions')
+            if(num_selected===num_required.max_positions)
+            {
+                await Application.updateMany({job:req.body._id,status:{$ne:'Accepted'}},{ $set: { status: 'Rejected' } })
+            }
             res.status(200).end()
 
         } catch (err) {
@@ -107,7 +136,7 @@ router.post("/details",auth,
 
     });
 
-router.get("/me",auth,
+router.post("/me",
     async (req, res) => {
 
         console.log("Body")
@@ -115,23 +144,38 @@ router.get("/me",auth,
 
         try {
             console.log(req.session.userid)
-            const existingUser= await Recruiter.findOne({ email:req.session.userid}).select('_id')
+            // if(req.body.userid.trim()!=="recruiter@main.com")
+            // {
+            //     console.log("No Senses")
+            // }
+            const existingUser= await Recruiter.findOne({ email:req.body.userid})
+
             if(!existingUser)
             {
                 return res.status(400).json({ message:"User Not Authenticated"})
             }
 
-            const existingJob = await Job.find({recruiter: existingUser})
+            const existingJobs = await Job.find({recruiter: existingUser}).lean()
 
-            if(existingJob)
+            if(existingJobs.length!==0)
             {
-                console.log(existingUser)
-                return res.status(200).json(existingJob)
+                const tobesent=await Promise.all(existingJobs.map(async (job) => {
+                    const num_applicants= await Application.countDocuments({job: job._id})
+                    const num_selected= await Application.countDocuments({job:job._id,status:"Accepted"})
+                    const temp_obj={
+                        num_applicants:num_applicants,
+                        num_selected:num_selected
+                    }
+                    return({...job,...temp_obj})
+                }))
+                console.log(tobesent)
+                return res.status(200).json(tobesent)
             }
 
             else
             {
-                return res.status(404).json({message:"No Job Details Found"})
+                const tobesent=[]
+                return res.status(200).json(tobesent)
             }
 
         } catch (err) {
@@ -141,9 +185,9 @@ router.get("/me",auth,
 
     });
 
-router.delete("/delete",
+router.post("/delete",
     async (req, res) => {
-        console.log("Body")
+        console.log("Body of delete")
         console.log(req.body)
 
         try {

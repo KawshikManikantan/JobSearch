@@ -4,7 +4,23 @@ import {useForm} from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import Cookies from 'js-cookie'
+import Navbar from "../templates/Navbar";
 
+
+//Navigation Elements
+const navelements=[
+    {
+        link:"/register",
+        title:"Register"
+    },
+    {
+        link:"/login",
+        title:"Login"
+    }
+]
+
+
+//Yup Schema for validation
 const schema = yup.object().shape({
     email: yup.string().email().required(),
     password: yup.string().min(8).required(),
@@ -12,14 +28,20 @@ const schema = yup.object().shape({
 });
 
 const Registration = (props) => {
+
+    //Registering the schema
     const { register, handleSubmit, errors } = useForm({
-        resolver: yupResolver(schema)
+        resolver: yupResolver(schema),
+        reValidateMode:"onSubmit"
     });
+
+    //State definition using Hooks
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [type, setType] = useState('');
 
 
+    //Function to Implement on Submitting
     const onSubmit = async event => {
         try {
 
@@ -29,6 +51,8 @@ const Registration = (props) => {
                 type: type
             }
             console.log(newUser)
+
+            //Resetting state after submission
             setEmail('');
             setPassword('');
             setType('');
@@ -38,8 +62,6 @@ const Registration = (props) => {
             Cookies.set('userid', res.data.userid)
             Cookies.set('type', res.data.type)
             Cookies.set('prof_built', res.data.prof_built)
-            alert(Cookies.get())
-            // alert(res.data.type)
 
             if (res.data.type === 'applicant') {
                 props.history.push('/profile')
@@ -49,13 +71,14 @@ const Registration = (props) => {
                 props.history.push('/recruiter/profile')
             }
         }catch(err){
-            console.log(err)
+            alert(err)
 
         }
         // props.history.push("/");
     }
     return (
         <div>
+            <Navbar elements={navelements}/>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="form-group">
                     <label>Email: </label>

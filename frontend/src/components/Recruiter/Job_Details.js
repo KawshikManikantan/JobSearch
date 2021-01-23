@@ -13,11 +13,17 @@ import moment from 'moment';
 import {classes} from "istanbul-lib-coverage";
 
 const schema = yup.object().shape({
-    // name:yup.string().required(),
-    // institute:yup.string().required(),
-    // start:yup.number().integer().min(1950).max((new Date()).getFullYear()).required(),
-    // end:yup.number().integer().positive().min(1950).max((new Date()).getFullYear()),
-    // // skills:yup.array().min(1)
+    title:yup.string().required(),
+    max_positions:yup.number().required(),
+    max_applications:yup.number().required()
+                        .moreThan(
+                        yup.ref('max_positions'),
+                        'Should be more than max_positions'),
+    deadline:yup.date().required(),
+    // type:yup.string().required(),
+    // duration:yup.string().required(),
+    salary:yup.number().required(),
+    skills:yup.array().min(1)
 });
 
 // class AddIcon extends Component {
@@ -27,11 +33,6 @@ const schema = yup.object().shape({
 // }
 
 const Job_Details = (props) => {
-
-    // useEffect(() => {
-    //     check_auth(props,'applicant')
-    // }, []);
-
     const {register, handleSubmit, errors} = useForm({
         reValidateMode:"onSubmit",
         resolver: yupResolver(schema)
@@ -44,20 +45,47 @@ const Job_Details = (props) => {
         'date_posting':moment(new Date()).format("YYYY-MM-DD HH:mm:ss"),
         'deadline':'',
         'skills': ['C', 'C++'],
-        'type':'',
-        'duration':'',
+        'type':'fulltime',
+        'duration':'0',
         'salary':'',
-        'recruiter':Cookies.get('id')
+        'recruiter':''
     }
-    const [details, setDetails] = useState(initial);
-
+    const [details, setDetails] = useState(props.location.state|| initial);
+    console.log(moment(details.deadline).format("YYYY-MM-DDTHH:mm:ss"))
+    useEffect(() => {
+        // check_auth(props,'applicant')
+        const loadData= async () =>{
+            try {
+                console.log("didmount")
+                const res = await axios.post('http://localhost:4000/profile/recruiter/me', {'userid':Cookies.get('userid')})
+                console.log(JSON.stringify(res))
+                console.log(res.data._id)
+                setDetails((prevState => { return({...prevState, "recruiter": res.data._id })}))
+            }catch(err){
+                console.log(err)
+            }
+        }
+        loadData()
+    }, []);
     const onSubmit = async event => {
         // console.log(details)
         try {
-            const res = await axios.post('http://localhost:4000/profile/applicant', details)
-            console.log(res)
-            setDetails(initial);
-            // props.history.push('/dashboard')
+            // const checkfinal=await schema
+            //     .isValid({
+            //         type: details.type,
+            //         duration: details.duration,
+            //     })
+            if(typeof props.location.state !=='undefined')
+            {
+                let res = await axios.put('http://localhost:4000/job/create', details)
+                console.log(res)
+            }
+            else{
+                let res = await axios.post('http://localhost:4000/job/create', details)
+                console.log(res)
+            }
+
+            props.history.push('/recruiter/dash')
             return false
         } catch(err)
         {
@@ -70,18 +98,9 @@ const Job_Details = (props) => {
     // }
 
     const handleChange = (property,event) =>{
-        setDetails({ ...details, [property]: event.target.value })
-    }
-
-    const handleRemove = (idx) => {
-        setDetails(prevState => {
-            const neweducation=prevState.education
-            neweducation.splice(idx,1)
-            return ({
-                ...prevState,
-                "education": neweducation
-            })
-        })
+        event.persist()
+        console.log(details)
+        setDetails((prevState => { return({...prevState, [property]: event.target.value })}))
     }
 
     const handleSkillChange = values =>  {
@@ -94,38 +113,6 @@ const Job_Details = (props) => {
         console.log(details)
     };
 
-    const handleAdd = () => {
-
-        setDetails(prevState => {
-            const neweducation=prevState.education
-            neweducation.push({
-                "institute": '',
-                "start": '',
-                "end": ''
-            })
-            return ({
-                ...prevState,
-                "education": neweducation
-            })
-        })
-    }
-
-    const handleEducationChange = (idx,property,value) =>{
-        setDetails(prevState => {
-            const neweducation=prevState.education
-            neweducation[idx]={
-                ...neweducation[idx],
-                [property]: value
-            }
-            // console.log(neweducation)
-            return({
-                ...prevState,
-                "education": neweducation
-            })
-        })
-        console.log(details.education)
-    }
-
     // cosnt handleSkillChange= ()
     const skills=["C","C++","Python","Ruby","Java","Javascript","React","Node","Julia"]
     return (
@@ -136,10 +123,13 @@ const Job_Details = (props) => {
                     <input type="text"
                            name="title"
                            value={details.title}
-                           placeholder="email"
+                           placeholder="Title"
                            onChange={event => handleChange("title",event)}
                            className="form-control"
+                           ref={register}
+                           readOnly={(typeof props.location.state !== 'undefined')}
                            />
+                    <p style={{ color:"red" }}>{errors.title?.message}</p>
                 </div>
                 <br/>
                 <Form.Row>
@@ -153,7 +143,7 @@ const Job_Details = (props) => {
                                    onChange={event => handleChange("max_applications",event)}
                                    ref={register}
                             />
-                            <p style={{ color:"red" }}>{errors.name?.message}</p>
+                            <p style={{ color:"red" }}>{errors.max_applications?.message}</p>
                         </div>
                     </Col>
                     <Col>
@@ -163,24 +153,24 @@ const Job_Details = (props) => {
                                    name="max_positions"
                                    className="form-control"
                                    value={details.max_positions}
-                                   onChange={event => handleChange("max_positions",event)}
+                                   onChange={event => { console.log(details);handleChange("max_positions",event)}}
                                    ref={register}
                             />
-                            <p style={{ color:"red" }}>{errors.name?.message}</p>
+                            <p style={{ color:"red" }}>{errors.max_positions?.message}</p>
                         </div>
                     </Col>
                     <Col>
                         <div className="form-group">
                             <label>Deadline For Appilcation: </label>
                             <input type="datetime-local"
-                                   min={new Date()}
+                                   min={moment(new Date()).format("YYYY-MM-DD HH:mm:ss")}
                                    name="deadline"
                                    className="form-control"
-                                   value={details.deadline}
+                                   value={moment(details.deadline).format("YYYY-MM-DDTHH:mm:ss")}
                                    onChange={event => handleChange("deadline",event)}
-                                   ref={register}
+                                   // ref={register}
                             />
-                            <p style={{ color:"red" }}>{errors.name?.message}</p>
+
                         </div>
                     </Col>
                 </Form.Row>
@@ -204,6 +194,8 @@ const Job_Details = (props) => {
                         renderInput={(params) => (
                             <TextField {...params} variant="outlined" label="Skills" placeholder="Skills" />
                         )}
+                        disabled={(typeof props.location.state !== 'undefined')}
+                        // readOnly={true}
                         // ref={register}
                     />
                     {/*<p style={{ color:"red" }}>{errors.skills?.message}</p>*/}
@@ -219,10 +211,11 @@ const Job_Details = (props) => {
                                     value={details.duration}
                                     onChange={event => handleChange("duration",event)}
                                     name="type"
-                                    className={classes.selectEmpty}
+                                    // className={classes.selectEmpty}
                                     inputProps={{ 'aria-label': 'type' }}
+                                    disabled={(typeof props.location.state  !== 'undefined')}
+                                    // ref={register}
                                 >
-                                    <option value="">None</option>
                                     <option value={0}>Indefinite</option>
                                     <option value={1}>1 month</option>
                                     <option value={2}>2 months</option>
@@ -232,25 +225,31 @@ const Job_Details = (props) => {
                                     <option value={6}>6 months</option>
                                 </NativeSelect>
                             </FormControl>
+                            <p style={{ color:"red" }}>{errors.duration?.message}</p>
                         </div>
                     </Col>
                     <Col>
-                        <label>Type of Job Profile:</label>
-                        <br/>
-                        <FormControl className="form-control">
-                            <NativeSelect
-                                value={details.type}
-                                onChange={event => handleChange("type",event)}
-                                name="type"
-                                className={classes.selectEmpty}
-                                inputProps={{ 'aria-label': 'type' }}
-                            >
-                                <option value="">None</option>
-                                <option value="fulltime">Full-Time</option>
-                                <option value="parttime">Part-Time</option>
-                                <option value="wfh">Work From Home</option>
-                            </NativeSelect>
-                        </FormControl>
+                        <div>
+                            <label>Type of Job Profile:</label>
+                            <br/>
+                            <FormControl className="form-control">
+                                <NativeSelect
+                                    value={details.type}
+                                    onChange={event => handleChange("type",event)}
+                                    name="type"
+                                    // className={classes.selectEmpty}
+                                    inputProps={{ 'aria-label': 'type' }}
+                                    disabled={(typeof props.location.state !== 'undefined')}
+                                    // ref={register}
+                                >
+                                    {/*<option value="">None</option>*/}
+                                    <option value="fulltime">Full-Time</option>
+                                    <option value="parttime">Part-Time</option>
+                                    <option value="wfh">Work From Home</option>
+                                </NativeSelect>
+                            </FormControl>
+                            <p style={{ color:"red" }}>{errors.type?.message}</p>
+                        </div>
                     </Col>
                     <Col>
                         <div className="form-group">
@@ -261,8 +260,9 @@ const Job_Details = (props) => {
                                    value={details.salary}
                                    onChange={event => handleChange("salary",event)}
                                    ref={register}
+                                   readOnly={(typeof props.location.state  !== 'undefined')}
                             />
-                            <p style={{ color:"red" }}>{errors.name?.message}</p>
+                            <p style={{ color:"red" }}>{errors.salary?.message}</p>
                         </div>
                     </Col>
                 </Form.Row>

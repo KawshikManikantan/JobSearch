@@ -19,6 +19,11 @@ const Profile_Recruiter = (props) => {
 
     useEffect(() => {
         check_auth(props,'recruiter')
+        console.log(Cookies.get('profile_built'))
+        if(Cookies.get('profile_built')===true)
+        {
+            props.history.push('/user/dash')
+        }
     }, []);
     
     const {register, handleSubmit, errors} = useForm({

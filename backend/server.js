@@ -15,6 +15,8 @@ var UserRouter = require("./routes/api/authentication/Users");
 var registerUser=require("./routes/api/authentication/register")
 var profilebuilder=require("./routes/api/data/profile_builder.js")
 var jobcontroller=require("./routes/api/data/job_controller.js")
+var applicationmanager=require('./routes/api/data/application_manager.js')
+var ratingmanager=require('./routes/api/data/rating_manager')
 
 app.use(cors());
 app.use(express.json());
@@ -45,7 +47,8 @@ app.use("/user", UserRouter);
 app.use("/auth",registerUser)
 app.use("/profile",profilebuilder)
 app.use("/job",jobcontroller)
-
+app.use("/appl",applicationmanager)
+app.use("/rate",ratingmanager)
 app.listen(PORT, function() {
     console.log("Server is running on Port: " + PORT);
 });

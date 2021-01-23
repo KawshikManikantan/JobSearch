@@ -61,6 +61,22 @@ router.post("/register",
 
     });
 
+router.post('/modify',async(req,res)=>{
+    //Debug
+    console.log("Body")
+    console.log(req.body)
+
+    //If no errors in the given input
+    try {
+        //Check if email is existant?
+        const email = req.body.email
+        const existingUser = await Register.findOneAndUpdate({email:email},{profile_built:true})
+        res.status(200).end()
+    }catch(err){
+        console.log(err)
+    }
+})
+
 router.post("/login",
     async (req, res) => {
 

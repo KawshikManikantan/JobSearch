@@ -4,6 +4,19 @@ import {useForm} from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from "yup";
 import Cookies from 'js-cookie'
+import Navbar from "../templates/Navbar";
+
+const navelements=[
+    {
+        link:"/register",
+        title:"Register"
+    },
+    {
+        link:"/login",
+        title:"Login"
+    }
+]
+
 const schema = yup.object().shape({
     email: yup.string().email().required(),
     password: yup.string().min(8).required(),
@@ -12,7 +25,8 @@ const schema = yup.object().shape({
 
 const Login = (props) => {
     const { register, handleSubmit, errors } = useForm({
-        resolver: yupResolver(schema)
+        resolver: yupResolver(schema),
+        reValidateMode: "onSubmit"
     });
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -56,11 +70,21 @@ const Login = (props) => {
             // setType('Applicant');
             return false
         }catch(err){
-            console.log(err)
+            console.log(err.response.status)
+            if(err.response.status===401)
+            {
+                alert('User not authenticated.Please try again')
+                props.history.push('/login')
+            }
+            else
+            {
+                alert('Server Error')
+            }
         }
     }
     return (
         <div>
+            <Navbar elements={navelements}/>
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="form-group">
                     <label>Email: </label>
